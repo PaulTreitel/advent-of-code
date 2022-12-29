@@ -1,4 +1,4 @@
-// taken from https://github.com/fspoettel/advent-of-code-rust/blob/main/src/lib.rs
+// taken from https://github.com/fspoettel/advent-of-code-rust/
 
 use std::env;
 use std::fs;
