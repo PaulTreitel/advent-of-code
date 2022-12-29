@@ -2,3 +2,4 @@
 solve = "run --bin"
 make = "build --bin"
 scaffold = "run --bin scaffold"
+try = "test --bin"

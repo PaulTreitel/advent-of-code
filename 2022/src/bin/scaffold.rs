@@ -19,7 +19,8 @@ pub fn part_two(input: &str) {
 
 fn main() {
     let input = aoc_2022::read_file("inputs", DAY);
-    
+    part_one(&input);
+    part_two(&input);
 }
 "###;
 
