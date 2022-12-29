@@ -9,18 +9,35 @@ use std::{
     process,
 };
 
-const MODULE_TEMPLATE: &str = r###"pub fn part_one(input: &str) {
-    
+const MODULE_TEMPLATE: &str = r###"pub fn part_one(input: &str) -> Option<i32> {
+    None
 }
 
-pub fn part_two(input: &str) {
-    
+pub fn part_two(input: &str) -> Option<i32> {
+    None
 }
 
 fn main() {
     let input = aoc_2022::read_file("inputs", DAY);
-    part_one(&input);
-    part_two(&input);
+    let res = part_one(&input).unwrap();
+    println!("{}", res);
+    let res = part_two(&input).unwrap();
+    println!("{}", res);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_part_one() {
+        let input = aoc_2022::read_file("examples", DAY);
+        assert_eq!(part_one(&input), None); // fill in
+    }
+    #[test]
+    fn test_part_two() {
+        let input = aoc_2022::read_file("examples", DAY);
+        assert_eq!(part_two(&input), None); // fill in
+    }
 }
 "###;
 
