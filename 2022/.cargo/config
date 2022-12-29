@@ -1,3 +1,4 @@
 [alias]
 solve = "run --bin"
 make = "build --bin"
+scaffold = "run --bin scaffold"

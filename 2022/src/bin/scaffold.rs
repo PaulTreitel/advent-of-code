@@ -10,11 +10,11 @@ use std::{
 };
 
 const MODULE_TEMPLATE: &str = r###"pub fn part_one(input: &str) {
-    None
+    
 }
 
 pub fn part_two(input: &str) {
-    None
+    
 }
 
 fn main() {
