@@ -90,6 +90,7 @@ fn run_sand(grid: &mut Vec<Vec<Space>>) -> i32 {
     }
 }
 
+/*
 fn print_paths(paths: &Vec<Vec<(i32, i32)>>) {
     for path in paths {
         for pt in path {
@@ -98,6 +99,7 @@ fn print_paths(paths: &Vec<Vec<(i32, i32)>>) {
         println!();
     }
 }
+*/
 
 fn get_paths(input: &str) -> Vec<Vec<(i32, i32)>> {
     let mut paths: Vec<Vec<(i32, i32)>> = Vec::new();
@@ -135,6 +137,7 @@ fn construct_matrix(rock_paths: &Vec<Vec<(i32, i32)>>) -> Vec<Vec<Space>> {
     matrix
 }
 
+/*
 fn print_matrix(matrix: &Vec<Vec<Space>>) {
     for row in matrix {
         for item in row {
@@ -147,6 +150,7 @@ fn print_matrix(matrix: &Vec<Vec<Space>>) {
         println!();
     }
 }
+*/
 
 fn main() {
     let input = aoc_2022::read_file("inputs", 14);
