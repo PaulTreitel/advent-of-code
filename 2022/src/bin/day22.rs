@@ -1,0 +1,277 @@
+use std::{cmp::max, collections::{HashMap, HashSet}};
+
+#[derive(Debug)]
+enum Direction {
+    Left,
+    Right,
+    Up,
+    Down,
+}
+
+struct ContextPart1 {
+    edges: HashMap<(i32, i32), HashSet<(i32, i32)>>,
+    start: (i32, i32),
+    moves: Vec<i32>,
+    turns: Vec<char>,
+}
+
+pub fn part_one(input: &str) -> Option<i32> {
+    let ctx = get_graph(input);
+    let mut curr_pos = ctx.start;
+    let mut curr_dir = Direction::Right;
+
+    for i in 0..ctx.moves.len() {
+        make_move(&ctx, &mut curr_pos, &curr_dir, ctx.moves.get(i).unwrap());
+        if i < ctx.turns.len() {
+            curr_dir = new_direction(curr_dir, *ctx.turns.get(i).unwrap());
+        }
+    }
+    Some((curr_pos.0 + 1) * 1000 + (curr_pos.1 + 1) * 4 + get_dir_val(&curr_dir))
+}
+
+pub fn part_two(input: &str) -> Option<i32> {
+    None
+}
+
+fn get_dir_val(dir: &Direction) -> i32 {
+    match dir {
+        Direction::Right => 0,
+        Direction::Down => 1,
+        Direction::Left => 2,
+        Direction::Up => 3,
+    }
+}
+
+fn make_move(
+    ctx: &ContextPart1,
+    pos: &mut (i32, i32),
+    dir: &Direction,
+    mv: &i32
+) -> () {
+    for _ in 0..*mv {
+        let neighbors = ctx.edges.get(pos).unwrap();
+        let mut moved = false;
+        for (r, c) in neighbors {
+            match *dir {
+                Direction::Left => {
+                    if *r == pos.0 && *c == pos.1 - 1 {
+                        *pos = (*r, *c);
+                        moved = true;
+                        break;
+                    } else if *r == pos.0 && *c > pos.1 + 1 {
+                        *pos = (*r, *c);
+                        moved = true;
+                        break;
+                    }
+                },
+                Direction::Right => {
+                    if *r == pos.0 && *c == pos.1 + 1 {
+                        *pos = (*r, *c);
+                        moved = true;
+                        break;
+                    } else if *r == pos.0 && *c < pos.1 - 1 {
+                        *pos = (*r, *c);
+                        moved = true;
+                        break;
+                    }
+                },
+                Direction::Up => {
+                    if *r == pos.0 - 1 && *c == pos.1 {
+                        *pos = (*r, *c);
+                        moved = true;
+                        break;
+                    } else if *r > pos.0 + 1 && *c == pos.1 {
+                        *pos = (*r, *c);
+                        moved = true;
+                        break;
+                    }
+                },
+                Direction::Down => {
+                    if *r == pos.0 + 1 && *c == pos.1 {
+                        *pos = (*r, *c);
+                        moved = true;
+                        break;
+                    } else if *r < pos.0 - 1 && *c == pos.1 {
+                        *pos = (*r, *c);
+                        moved = true;
+                        break;
+                    }
+                },
+            }
+        }
+        if !moved {
+            break;
+        }
+    }
+}
+
+fn new_direction(dir: Direction, turn: char) -> Direction {
+    if turn == 'L' {
+        match dir {
+            Direction::Left => Direction::Down,
+            Direction::Right => Direction::Up,
+            Direction::Up => Direction::Left,
+            Direction::Down => Direction::Right,
+        }
+    } else if turn == 'R' {
+        match dir {
+            Direction::Left => Direction::Up,
+            Direction::Right => Direction::Down,
+            Direction::Up => Direction::Right,
+            Direction::Down => Direction::Left,
+        }
+    } else {
+        unreachable!("turn is neither left nor right");
+    }
+}
+
+fn get_graph(input: &str) -> ContextPart1 {
+    let mut points = HashSet::new();
+    let mut edges = HashMap::new();
+    let mut start = (0, 0);
+    
+    let mut input: Vec<&str> = input.lines().collect();
+    let (moves, turns) = get_instructions(input.pop().unwrap());
+    input.pop().unwrap();
+    let char_vecs: Vec<Vec<char>> = input.iter()
+        .map(|l| l.chars().collect())
+        .collect();
+
+    get_points_start(&char_vecs, &mut points, &mut start);
+    add_normal_edges(&mut edges, &points);
+    add_wraparound_edges(&char_vecs, &mut edges);
+    ContextPart1 { edges: edges, start: start, moves: moves, turns: turns }
+}
+
+fn get_instructions(input: &str) -> (Vec<i32>, Vec<char>) {
+    let input = input.to_string();
+    let turns = input.split(|x: char| x.is_numeric())
+        .filter(|x| x.len() > 0)
+        .map(|x| x.chars().next().unwrap())
+        .collect();
+    let moves: Vec<&str> = input.split(|p: char| p.is_alphabetic())
+        .collect();
+    let moves = moves.iter()
+        .map(|x| x.parse::<i32>().unwrap())
+        .collect();
+    (moves, turns)
+}
+
+fn add_wraparound_edges(
+    char_vecs: &Vec<Vec<char>>,
+    edges: &mut HashMap<(i32, i32), HashSet<(i32, i32)>>
+) -> () {
+    let mut max_width = 0;
+    for row_idx in 0..char_vecs.len() {
+        let row = char_vecs.get(row_idx).unwrap();
+        max_width = max(max_width, row.len());
+        if *row.get(row.len() - 1).unwrap() == '#' {
+            continue;
+        }
+        for col_idx in 0..row.len() {
+            let cell = row.get(col_idx).unwrap();
+            if *cell == '#' {
+                break;
+            } else if *cell == '.' {
+                edges.get_mut(&(row_idx as i32, col_idx as i32)).unwrap()
+                    .insert((row_idx as i32, row.len() as i32 - 1));
+                edges.get_mut(&(row_idx as i32, row.len() as i32 - 1)).unwrap()
+                    .insert((row_idx as i32, col_idx as i32));
+                break;
+            }
+        }
+    }
+
+    for col_idx in 0..max_width {
+        let mut col_start = (i32::MAX, i32::MAX);
+        let mut col_end = (i32::MAX, i32::MAX);
+        for row_idx in 0..char_vecs.len() {
+            let row = char_vecs.get(row_idx).unwrap();
+            if row.len() <= col_idx {
+                continue;
+            }
+            let val = row.get(col_idx).unwrap();
+            if *val != ' ' {
+                if col_start == (i32::MAX, i32::MAX) {
+                    if *val == '#' {
+                        break;
+                    }
+                    col_start = (row_idx as i32, col_idx as i32);
+                }
+                col_end = (row_idx as i32, col_idx as i32);
+            }
+        }
+        if col_end == (i32::MAX, i32::MAX) || col_start == (i32::MAX, i32::MAX) {
+            continue;
+        }
+        let endpoint = char_vecs.get(col_end.0 as usize).unwrap()
+            .get(col_end.1 as usize).unwrap();
+        if *endpoint == '.' {
+            edges.get_mut(&col_start).unwrap().insert(col_end);
+            edges.get_mut(&col_end).unwrap().insert(col_start);
+        }
+    }
+}
+
+fn add_normal_edges(
+    edges: &mut HashMap<(i32, i32), HashSet<(i32, i32)>>,
+    points: &HashSet<(i32, i32)>
+) -> () {
+    for (x, y) in points.clone() {
+        let mut neighbors = HashSet::new();
+        if points.contains(&(x + 1, y)) {
+            neighbors.insert((x + 1, y));
+        }
+        if points.contains(&(x - 1, y)) {
+            neighbors.insert((x - 1, y));
+        }
+        if points.contains(&(x, y + 1)) {
+            neighbors.insert((x, y + 1));
+        }
+        if points.contains(&(x, y - 1)) {
+            neighbors.insert((x, y - 1));
+        }
+        edges.insert((x, y), neighbors);
+    }
+}
+
+fn get_points_start(
+    char_vecs: &Vec<Vec<char>>,
+    points: &mut HashSet<(i32, i32)>,
+    start: &mut (i32, i32)
+) -> () {
+    for row_idx in 0..char_vecs.len() {
+        let row = char_vecs.get(row_idx).unwrap();
+        for col_idx in 0..row.len() {
+            if *row.get(col_idx).unwrap() == '.' {
+                if points.len() == 0 {
+                    *start = (row_idx as i32, col_idx as i32);
+                }
+                points.insert((row_idx as i32, col_idx as i32));
+            }
+        }
+    }
+}
+
+fn main() {
+    let input = aoc_2022::read_file("inputs", 22);
+    let res = part_one(&input).unwrap();
+    println!("{}", res);
+    let res = part_two(&input).unwrap();
+    println!("{}", res);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_part_one() {
+        let input = aoc_2022::read_file("examples", 22);
+        assert_eq!(part_one(&input), Some(6032)); // fill in
+    }
+    #[test]
+    fn test_part_two() {
+        let input = aoc_2022::read_file("examples", 22);
+        assert_eq!(part_two(&input), None); // fill in
+    }
+}
