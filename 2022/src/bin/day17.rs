@@ -44,7 +44,7 @@ pub fn part_two(input: &str) -> Option<i64> {
     let mut highest = [-1; 7];
     let mut move_idx: i32 = 0;
     let mut state: HashSet<Point> = HashSet::new();
-    let mut heights: HashMap<(i32, i32), (i64, i64)> = HashMap::new();
+    let mut heights: HashMap<(i32, i32), (i64, i64, [i64; 7])> = HashMap::new();
     for i in 0..7 {
         state.insert(Point { x: i, y: -1 });
     }
@@ -59,6 +59,9 @@ pub fn part_two(input: &str) -> Option<i64> {
         let curr_height = 1 + *highest.iter().max_by(|x, y| x.cmp(y)).unwrap();
         if heights.contains_key(&(move_idx, (i % 5) as i32)) {
             let old = heights.get(&(move_idx, (i % 5) as i32)).unwrap();
+            if !heights_match(&highest, &old.2) {
+                continue;
+            }
             pattern_iters = i as i64 - old.0;
             pattern_height_diff = curr_height - old.1;
             base_iter = old.0;
@@ -66,7 +69,7 @@ pub fn part_two(input: &str) -> Option<i64> {
             start = i + 1;
             break;
         }
-        heights.insert((move_idx, (i % 5) as i32), (i as i64, curr_height));
+        heights.insert((move_idx, (i % 5) as i32), (i as i64, curr_height, highest));
     }
 
     target -= base_iter;
@@ -93,6 +96,23 @@ impl PartialEq for Point {
     fn eq(&self, other: &Self) -> bool {
         self.x == other.x && self.y == other.y
     }
+}
+
+fn heights_match(current: &[i64; 7], old: &[i64; 7]) -> bool {
+    let current = current.clone();
+    let old = old.clone();
+    let diffs: Vec<i64> = current.clone()
+        .iter()
+        .zip(old.iter())
+        .map(|(x, y)| x - y)
+        .collect();
+    let base_diff = diffs.get(0).unwrap();
+    for i in 1..7 {
+        if diffs.get(i).unwrap() != base_diff {
+            return false;
+        }
+    }
+    true
 }
 
 fn add_rock(
